@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Forged & Functional</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Firebase compat SDKs - work on all static hosts -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 :root {
   --bg:    #0d0d14;
@@ -922,11 +925,8 @@ input,select{font-family:'Barlow',sans-serif;}
 
 </div><!-- /content -->
 
-<script type="module">
-// ── Firebase ────────────────────────────────────────────────────────────────
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+<script>
+// ── Firebase setup ──────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyBRpjXT0TPZHAa6uYJD6jMb-lGnPfQRw1U",
   authDomain: "heartcry-hud.firebaseapp.com",
@@ -936,47 +936,39 @@ const firebaseConfig = {
   appId: "1:148540702480:web:c8719e8859e1f60a5a6f95"
 };
 
-const fbApp = initializeApp(firebaseConfig);
-const db = getFirestore(fbApp);
-const DOC_ID = "david-main"; // single user doc
-const DOC_REF = doc(db, "forged-functional", DOC_ID);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const DOC_REF = db.collection("forged-functional").doc("david-main");
 
 // ── State ────────────────────────────────────────────────────────────────────
-// Default state structure
 function defaultState(){
   return {chain:{},aft:[],supp:[],daily:{},lastActive:null};
 }
-
 let STATE = defaultState();
 let SAVE_TIMER = null;
 
-// Load from Firebase on start
 async function loadFromFirebase(){
   showSyncStatus('loading');
   try {
-    const snap = await getDoc(DOC_REF);
-    if(snap.exists()){
-      STATE = {...defaultState(), ...snap.data()};
+    const snap = await DOC_REF.get();
+    if(snap.exists){
+      STATE = Object.assign(defaultState(), snap.data());
     }
   } catch(e){
     console.error('Firebase load error:', e);
     showSyncStatus('error');
-    // Fall back to localStorage if Firebase fails
-    try{const r=localStorage.getItem('ff_v2');if(r)STATE={...defaultState(),...JSON.parse(r)};}catch(e2){}
+    try{const r=localStorage.getItem('ff_v2');if(r)STATE=Object.assign(defaultState(),JSON.parse(r));}catch(e2){}
   }
   initApp();
 }
 
-// Save to Firebase (debounced 800ms)
 function saveState(){
-  // Also save to localStorage as backup
   try{localStorage.setItem('ff_v2', JSON.stringify(STATE));}catch(e){}
-  // Debounce Firebase saves to avoid hammering on rapid taps
   if(SAVE_TIMER)clearTimeout(SAVE_TIMER);
-  SAVE_TIMER = setTimeout(async ()=>{
+  SAVE_TIMER = setTimeout(async function(){
     showSyncStatus('saving');
     try{
-      await setDoc(DOC_REF, STATE);
+      await DOC_REF.set(STATE);
       showSyncStatus('saved');
     } catch(e){
       console.error('Firebase save error:', e);
@@ -988,12 +980,13 @@ function saveState(){
 function showSyncStatus(status){
   const el = document.getElementById('sync-status');
   if(!el)return;
-  if(status==='loading'){el.textContent='⟳ Loading…';el.style.color='var(--t3)';}
-  else if(status==='saving'){el.textContent='⟳ Saving…';el.style.color='var(--amber)';}
-  else if(status==='saved'){el.textContent='✓ Saved';el.style.color='var(--green)';setTimeout(()=>{el.textContent='';},2000);}
-  else if(status==='error'){el.textContent='⚠ Sync error';el.style.color='var(--red)';}
+  if(status==='loading'){el.textContent='Loading…';el.style.color='var(--t3)';}
+  else if(status==='saving'){el.textContent='Saving…';el.style.color='var(--amber)';}
+  else if(status==='saved'){el.textContent='✓ Saved';el.style.color='var(--green)';setTimeout(function(){el.textContent='';},2000);}
+  else if(status==='error'){el.textContent='⚠ Sync error — check connection';el.style.color='var(--red)';}
 }
 
+// ── App script ──────────────────────────────────────────────────────────────
 // ── Scoring tables ──────────────────────────────────────────────────────────
 function ts(t){if(!t||!t.includes(':'))return 999999;const p=t.trim().split(':').map(Number);return p[0]*60+(p[1]||0);}
 const MDL=[[100,340],[95,310],[91,290],[89,280],[87,270],[85,260],[83,250],[81,240],[79,230],[77,220],[75,210],[73,200],[70,190],[67,180],[65,170],[63,160],[60,140],[50,130],[40,120],[30,110],[20,100],[10,90],[0,80]];
@@ -1689,9 +1682,25 @@ function initApp(){
   updateHUD();
 }
 
-// ── Start app after Firebase loads ──────────────────────────────────────────
-loadFromFirebase();
+function initApp(){
+  NOW = new Date();
+  DAY_ANCHOR = new Date(NOW);
+  if(DAY_ANCHOR.getHours()<4) DAY_ANCHOR.setDate(DAY_ANCHOR.getDate()-1);
+  TODAY = localDateStr(DAY_ANCHOR);
+  document.getElementById('in-aft-date').value=TODAY;
+  document.getElementById('in-supp-date').value=TODAY;
+  checkDailyReset();
+  buildChain();buildWaypoints();
+  renderProtLog();renderWaterLog();
+  renderMealChecklist();
+  renderHistAFT();renderHistSupp();renderSuppCompare();
+  renderHistDaily();renderAverages();
+  restoreToday();
+  renderQuestFields();
+  updateHUD();
+}
 
+loadFromFirebase();
 </script>
 </body>
 </html>

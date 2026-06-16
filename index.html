@@ -332,7 +332,19 @@ input,select{font-family:'Barlow',sans-serif;}
 /* gold token */
 :root{--gold:#d4a82c;--golddim:#d4a82c22;}
 
+/* Forecast / Morning Report */
+.fc-row{display:flex;justify-content:space-between;align-items:center;padding:11px 4px;border-bottom:1px solid var(--bdr);}
+.fc-row:last-child{border-bottom:none;}
+.fc-lbl{font-family:'Cinzel',serif;font-size:13px;font-weight:600;letter-spacing:0.08em;color:var(--t2);}
+.fc-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:0.02em;}
+.fc-val.gold{color:var(--gold);}
+.fc-val.green{color:var(--green);}
+.fc-val.blue{color:var(--blue);}
+.fc-val.teal{color:var(--teal);}
+.fc-val.red{color:var(--red);}
+.fc-flag{border:1px solid;border-radius:8px;padding:9px 12px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.04em;margin-top:6px;background:rgba(255,255,255,0.02);}
 </style>
+
 </head>
 <body>
 <div class="topbar">
@@ -413,59 +425,43 @@ input,select{font-family:'Barlow',sans-serif;}
 <!-- ════ HUD ════ -->
 <div id="tab-hud" class="tab">
 
-  <div class="hud-top">
-    <div class="score-card">
-      <div class="sc-lbl">Daily Score</div>
-      <div class="sc-val" id="hud-score" style="color:var(--t3);">0</div>
-      <div class="sc-sub">of 6</div>
-    </div>
-    <div class="score-card">
-      <div class="sc-lbl">Streak</div>
-      <div class="sc-val" id="hud-streak" style="color:var(--green);">0</div>
-      <div class="sc-sub">no zero days</div>
-    </div>
-  </div>
-
-  <div class="pillars">
-    <div class="pillar-card" style="cursor:pointer;" onclick="showTab('quest',document.querySelectorAll('#main-nav .nb')[1])">
-      <div class="pc-lbl">Pommel</div>
-      <div class="pc-frac red" id="hud-well-frac">0/4</div>
-      <div class="pc-sub" id="hud-well-sub">need 4 of 4</div>
-    </div>
-    <div class="pillar-card" style="cursor:pointer;" onclick="showTab('input',document.querySelectorAll('#main-nav .nb')[3])">
-      <div class="pc-lbl">Pick</div>
-      <div class="pc-frac red" id="hud-stew-frac">0/4</div>
-      <div class="stew-dots" id="hud-stew-dots">
-        <div class="stew-dot" id="sdot-sleep" title="Sleep"></div>
-        <div class="stew-dot" id="sdot-water" title="Water"></div>
-        <div class="stew-dot" id="sdot-prot" title="Protein"></div>
-        <div class="stew-dot" id="sdot-nutr" title="Nutrition"></div>
+  <!-- ══ MORNING CALCULATE ══ -->
+  <div class="box" id="calc-input-box">
+    <div class="box-title cz">Morning Report <span class="sub">enter two numbers, get the day's orders</span></div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px;">
+      <div style="flex:1;min-width:120px;">
+        <label style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--t3);display:block;margin-bottom:4px;">Sleep last night</label>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <input type="number" id="calc-sleep-hr" placeholder="7" min="0" max="14" style="width:55px;font-size:18px;font-weight:700;text-align:center;background:var(--bg3);border:1px solid var(--bdr2);color:var(--t1);padding:8px;border-radius:6px;outline:none;">
+          <span style="color:var(--t2);font-weight:700;">h</span>
+          <input type="number" id="calc-sleep-min" placeholder="0" min="0" max="59" style="width:55px;font-size:18px;font-weight:700;text-align:center;background:var(--bg3);border:1px solid var(--bdr2);color:var(--t1);padding:8px;border-radius:6px;outline:none;">
+          <span style="color:var(--t2);font-weight:700;">m</span>
+        </div>
+      </div>
+      <div style="flex:1;min-width:120px;">
+        <label style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--t3);display:block;margin-bottom:4px;">Bevel recovery</label>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <input type="number" id="calc-recovery" placeholder="—" min="0" max="100" style="width:70px;font-size:18px;font-weight:700;text-align:center;background:var(--bg3);border:1px solid var(--bdr2);color:var(--t1);padding:8px;border-radius:6px;outline:none;">
+          <span style="color:var(--t2);font-weight:700;">%</span>
+        </div>
       </div>
     </div>
-    <div class="pillar-card" style="cursor:pointer;" onclick="showTab('helve',document.querySelectorAll('#main-nav .nb')[2])">
-      <div class="pc-lbl">Helve</div>
-      <div class="pc-frac red" id="hud-inv-frac">0/4</div>
-      <div class="pc-sub" id="hud-inv-sub">need 2 of 4</div>
-    </div>
-    <div class="pillar-card" style="cursor:pointer;" onclick="showTab('steward',document.querySelectorAll('#main-nav .nb')[4])">
-      <div class="pc-lbl">Dagger</div>
-      <div class="pc-frac red" id="hud-comp-frac">0/1</div>
-      <div class="pc-sub" id="hud-comp-sub">any movement</div>
-    </div>
+    <button class="btn primary" style="width:100%;padding:13px;font-size:15px;letter-spacing:0.12em;" onclick="runCalculate()">&#9876;&nbsp; CALCULATE THE DAY</button>
   </div>
 
-  <div class="feel-row">
-    <div class="feel-card">
-      <div class="fc-lbl">Morning</div>
-      <div class="fc-val" id="hud-feeling">—</div>
+  <!-- ══ FORECAST OUTPUT ══ -->
+  <div id="calc-output" style="display:none;">
+    <div class="box" style="background:linear-gradient(135deg,#0f1a14,#13131e);border:1px solid var(--green);">
+      <div class="box-title cz" style="color:var(--green);">Today's Orders <span class="sub" id="calc-daystamp"></span></div>
+      <div id="forecast-rows"></div>
+      <div id="forecast-flags" style="margin-top:10px;"></div>
     </div>
-    <div class="feel-card">
-      <div class="fc-lbl">Day Load</div>
-      <div class="fc-val" id="hud-load">—</div>
+    <div class="box" id="calc-why-box" style="display:none;">
+      <div class="box-title">Why these orders</div>
+      <div id="forecast-why" style="font-size:12.5px;color:var(--t2);line-height:1.7;"></div>
     </div>
-    <div class="feel-card">
-      <div class="fc-lbl">Tomorrow</div>
-      <div class="fc-val" id="hud-tmrw">—</div>
+    <div style="text-align:center;margin:4px 0 12px;">
+      <button class="btn" onclick="toggleWhy()" id="why-btn" style="font-size:11px;">Show the reasoning</button>
     </div>
   </div>
 
@@ -478,7 +474,7 @@ input,select{font-family:'Barlow',sans-serif;}
       <button class="btn" onclick="undoToday()">Undo today</button>
       <button class="btn" onclick="newDay()" style="background:var(--adim);border-color:var(--amber);color:var(--amber);">New Day</button>
     </div>
-    <p class="note" style="margin-top:8px;">Auto-marks when score hits 4+. Day resets at 4 AM. <span style="color:var(--amber);">⚠ Uploading a new app version to Netlify will erase your saved data — export first.</span></p>
+    <p class="note" style="margin-top:8px;">Day resets at 4 AM. <span style="color:var(--amber);">Night reminder: complete your logs before bed \xe2\x80\x94 tomorrow's Morning Report is only as good as today's data.</span></p>
   </div>
 
   <!-- Next waypoint -->
@@ -673,6 +669,25 @@ input,select{font-family:'Barlow',sans-serif;}
       <span id="wo-done-lbl">Full session done — better day</span>
     </button>
   </div>
+
+  <!-- ══ MOVEMENT LOG: minutes + day type (feeds the Morning Report) ══ -->
+  <div class="box">
+    <div class="box-title cz">Log the Movement <span class="sub">feeds tomorrow's report</span></div>
+    <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;">
+      <div style="flex:1;">
+        <label style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--t3);display:block;margin-bottom:4px;">Workout minutes today</label>
+        <input type="number" id="move-min" placeholder="0" min="0" max="600" oninput="saveMoveMin()" style="width:100%;font-size:18px;font-weight:700;background:var(--bg3);border:1px solid var(--bdr2);color:var(--t1);padding:9px 12px;border-radius:6px;outline:none;">
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--t3);margin-bottom:7px;">What kind of day was it?</div>
+    <div class="tier-grid">
+      <button class="tier-btn" id="dtype-easy" onclick="setDayType('easy')">EASY<br><span style="font-size:10px;font-weight:400;color:var(--t3);">the hard one · go</span></button>
+      <button class="tier-btn" id="dtype-priming" onclick="setDayType('priming')">PRIMING<br><span style="font-size:10px;font-weight:400;color:var(--t3);">build the engine</span></button>
+      <button class="tier-btn" id="dtype-reload" onclick="setDayType('reload')">RELOAD<br><span style="font-size:10px;font-weight:400;color:var(--t3);">restock the tank</span></button>
+    </div>
+    <p class="note" style="margin-top:8px;">EASY = your hardest. Only easy day was yesterday. PRIMING = deliberate middle. RELOAD = restock so the next hard day pays off.</p>
+  </div>
+
   <div class="stew-nav">
     <button class="sn-btn on" onclick="showStew('fivemin',this)">5 Min</button>
     <button class="sn-btn" onclick="showStew('prebed',this)">Pre-Bed</button>
@@ -734,110 +749,83 @@ input,select{font-family:'Barlow',sans-serif;}
 
   <!-- TRAIN -->
   <div id="stew-train" class="stew-section">
-    <p class="note" style="margin-bottom:12px;">Tap any session to open the full workout. 25-min version built into each.</p>
+    <p class="note" style="margin-bottom:12px;">Six fixed circuits. Memorize them — no schemes to track. Run any one harder for an EASY day, lighter for PRIMING, restorative for RELOAD. Tap to open.</p>
 
-    <div class="wo-card"><div class="wo-header" onclick="toggleWo('mon')"><div class="wo-hdr-left"><span class="wo-day">MON</span><div><div class="wo-title">Strength A<span class="pill pill-s">Strength</span></div><div class="wo-sub">Hinge + Pull · 45 min · 25 min compressed</div></div></div><span class="wo-chev" id="chev-mon">▼</span></div>
-    <div class="wo-body" id="body-mon" style="display:none;">
-      <div class="wo-sec-lbl">Warm-Up — 5 min</div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Floor breathing</strong> — 10 diaphragmatic breaths. Reset the nervous system first.</div></div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Rocking + rolling</strong> — 20 reps on all fours. Original Strength reset.</div></div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Ankle wall stretch</strong> — 30 sec each side. #1 injury prevention. Non-negotiable.</div></div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Hip 90/90</strong> — 30 sec each side. Left hip and sciatica prevention.</div></div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>5 squat jumps</strong> — light, explosive, CNS activation.</div></div>
-      <div class="wo-sec-lbl">Main Work</div>
-      <div class="wo-ex"><span class="wo-set">4×4–5</span><div><strong>Hex bar deadlift</strong> — 80–85% max. Full reset between reps. Neutral spine, brace before every rep. 2–3 min rest.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×6ea</span><div><strong>Single-leg RDL</strong> — moderate load, control the descent. Hinge from hip, soft knee.</div></div>
-      <div class="wo-ex"><span class="wo-set">3 sets</span><div><strong>Pull-up progression</strong> — dead hang max hold → 5 slow negatives (5–8 sec down). Track every session.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×6ea</span><div><strong>Renegade row</strong> — push-up position, row one DB at a time. Keep hips square.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×60ft</span><div><strong>Farmer carry</strong> — heavy, upright posture, controlled breathing.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×8ea</span><div><strong>Dead bug</strong> — full exhale before moving. Lower back flat on floor always.</div></div>
-      <div class="wo-sec-lbl">Finisher — 5 min</div>
-      <div class="wo-ex"><span class="wo-set">10 rds</span><div><strong>Attack bike</strong> — 8 sec all-out / 12 sec easy. VO2 max protocol. Do not skip.</div></div>
-      <div class="wo-compressed"><div class="wo-comp-lbl">⚡ 25-Min Version</div>
-        <div class="wo-ex" style="margin-top:7px;"><span class="wo-set">3×5</span><div><strong>Hex bar deadlift</strong> — heavy. Must-keep.</div></div>
-        <div class="wo-ex"><span class="wo-set">3 sets</span><div><strong>Pull-up progression</strong></div></div>
-        <div class="wo-ex"><span class="wo-set">2×60ft</span><div><strong>Farmer carry</strong> — finisher.</div></div>
-      </div>
+    <!-- BARBELL 100 -->
+    <div class="wo-card"><div class="wo-header" onclick="toggleWo('bb100')"><div class="wo-hdr-left"><span class="wo-day">01</span><div><div class="wo-title">Barbell 100<span class="pill pill-s">Strength</span></div><div class="wo-sub">Olympic bar, light · 100 reps · ~12 min</div></div></div><span class="wo-chev" id="chev-bb100">▼</span></div>
+    <div class="wo-body" id="body-bb100" style="display:none;">
+      <div class="wo-sec-lbl">One circuit · light bar · minimal rest</div>
+      <div class="wo-ex"><span class="wo-set">20</span><div><strong>Curls</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">20</span><div><strong>Squats</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">20</span><div><strong>Bent-over rows</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">20</span><div><strong>Overhead press</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">20</span><div><strong>High pulls (trap pulls)</strong></div></div>
+      <div class="wo-compressed"><div class="wo-comp-lbl">Dose</div><div class="wo-ex" style="margin-top:7px;"><span class="wo-set">—</span><div>EASY: 2-3 rounds or add weight. PRIMING: 1 round steady. Harder = more rounds, not more thinking.</div></div></div>
     </div></div>
 
-    <div class="wo-card"><div class="wo-header" onclick="toggleWo('tue')"><div class="wo-hdr-left"><span class="wo-day">TUE</span><div><div class="wo-title">Zone 2 + Carries<span class="pill pill-z">Zone 2</span></div><div class="wo-sub">Aerobic engine · 40 min · 20 min compressed</div></div></div><span class="wo-chev" id="chev-tue">▼</span></div>
-    <div class="wo-body" id="body-tue" style="display:none;">
-      <div class="wo-sec-lbl">The Protocol</div>
-      <div class="wo-ex"><span class="wo-set">3 min</span><div><strong>Ramp up</strong> — easy flat walk.</div></div>
-      <div class="wo-ex"><span class="wo-set">35 min</span><div><strong>40-degree incline treadmill</strong> — HR at or below 132 BPM. Hands OFF rails. Speed ~2.5–3.5 mph. Feels slow. That's correct.</div></div>
-      <div class="wo-ex"><span class="wo-set">add</span><div><strong>Bucket carry or sandbag</strong> — once HR is calibrated at your speed.</div></div>
-      <div class="wo-ex"><span class="wo-set">2 min</span><div><strong>Easy cool-down walk</strong></div></div>
-      <div class="wo-compressed"><div class="wo-comp-lbl">⚡ 25-Min Version</div>
-        <div class="wo-ex" style="margin-top:7px;"><span class="wo-set">20 min</span><div>Incline treadmill, same HR ceiling.</div></div>
-        <div class="wo-ex"><span class="wo-set">5 min</span><div>Farmer carry finisher.</div></div>
-      </div>
+    <!-- KETTLEBELL FLOW -->
+    <div class="wo-card"><div class="wo-header" onclick="toggleWo('kbflow')"><div class="wo-hdr-left"><span class="wo-day">02</span><div><div class="wo-title">Kettlebell Flow<span class="pill pill-s">Strength + Cond</span></div><div class="wo-sub">One bell · full circuit · ~15-20 min</div></div></div><span class="wo-chev" id="chev-kbflow">▼</span></div>
+    <div class="wo-body" id="body-kbflow" style="display:none;">
+      <div class="wo-sec-lbl">One bell · 2-3 rounds</div>
+      <div class="wo-ex"><span class="wo-set">15</span><div><strong>Swings</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">10</span><div><strong>Goblet squats</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">10</span><div><strong>Halos</strong> (5 each direction)</div></div>
+      <div class="wo-ex"><span class="wo-set">10</span><div><strong>Cross-body cleans</strong> (5 each side)</div></div>
+      <div class="wo-ex"><span class="wo-set">5ea</span><div><strong>Clean &amp; press</strong> each side</div></div>
+      <div class="wo-compressed"><div class="wo-comp-lbl">Dose</div><div class="wo-ex" style="margin-top:7px;"><span class="wo-set">—</span><div>EASY: 3 rounds or heavier bell. PRIMING: 2 rounds. RELOAD: 1 easy round.</div></div></div>
     </div></div>
 
-    <div class="wo-card"><div class="wo-header" onclick="toggleWo('wed')"><div class="wo-hdr-left"><span class="wo-day">WED</span><div><div class="wo-title">Minimum Day<span class="pill pill-m">Minimum</span></div><div class="wo-sub">10 min · chain day always</div></div></div><span class="wo-chev" id="chev-wed">▼</span></div>
-    <div class="wo-body" id="body-wed" style="display:none;">
-      <div class="wo-sec-lbl">10-Min Reset</div>
-      <div class="wo-ex"><span class="wo-set">2 min</span><div><strong>Floor breathing</strong> — 10 slow breaths. Nervous system reset.</div></div>
-      <div class="wo-ex"><span class="wo-set">2 min</span><div><strong>Rocking + rolling</strong> — 20 reps, 5 rolls each side.</div></div>
-      <div class="wo-ex"><span class="wo-set">2 min</span><div><strong>Ankle circles + wall stretch</strong> — 30 sec each side.</div></div>
-      <div class="wo-ex"><span class="wo-set">2 min</span><div><strong>Hip 90/90</strong> — 30 sec each side. Left hip especially.</div></div>
-      <div class="wo-ex"><span class="wo-set">2 min</span><div><strong>Thoracic rotation</strong> — side-lying, 10 each side.</div></div>
+    <!-- BODYWEIGHT BASIC -->
+    <div class="wo-card"><div class="wo-header" onclick="toggleWo('bw')"><div class="wo-hdr-left"><span class="wo-day">03</span><div><div class="wo-title">Bodyweight Basic<span class="pill pill-z">Anywhere</span></div><div class="wo-sub">No gear · travel/hotel option · ~12 min</div></div></div><span class="wo-chev" id="chev-bw">▼</span></div>
+    <div class="wo-body" id="body-bw" style="display:none;">
+      <div class="wo-sec-lbl">No equipment · 2-3 rounds</div>
+      <div class="wo-ex"><span class="wo-set">15</span><div><strong>Push-ups</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">10ea</span><div><strong>Lunges</strong> each leg</div></div>
+      <div class="wo-ex"><span class="wo-set">5</span><div><strong>Get-ups</strong> (floor to stand)</div></div>
+      <div class="wo-ex"><span class="wo-set">15</span><div><strong>Squats</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">30s</span><div><strong>Plank</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">5</span><div><strong>Pull-ups</strong> (optional, if bar handy)</div></div>
+      <div class="wo-compressed"><div class="wo-comp-lbl">Dose</div><div class="wo-ex" style="margin-top:7px;"><span class="wo-set">—</span><div>EASY: 3-4 rounds fast. PRIMING: 2 rounds steady.</div></div></div>
     </div></div>
 
-    <div class="wo-card"><div class="wo-header" onclick="toggleWo('thu')"><div class="wo-hdr-left"><span class="wo-day">THU</span><div><div class="wo-title">Strength B<span class="pill pill-s">Strength</span></div><div class="wo-sub">Push + Squat · 45 min · 25 min compressed</div></div></div><span class="wo-chev" id="chev-thu">▼</span></div>
-    <div class="wo-body" id="body-thu" style="display:none;">
-      <div class="wo-sec-lbl">Warm-Up — 5 min</div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Ankle stretch + hip 90/90</strong> — always before lower body work.</div></div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Thoracic rotation</strong> — 10 each side.</div></div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Glute bridge march</strong> — 10 each side. Activates glutes, protects knees.</div></div>
-      <div class="wo-sec-lbl">Main Work</div>
-      <div class="wo-ex"><span class="wo-set">3×10ea</span><div><strong>ATG split squat</strong> — full range. Ben Patrick knee health cornerstone.</div></div>
-      <div class="wo-ex"><span class="wo-set">4×max</span><div><strong>Hindu push-ups</strong> — max quality reps per set. Chest, shoulders, spine, hips.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×10</span><div><strong>Mike Tyson push-ups</strong> — stand close to wall, hinge forward, push-up, return.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×15</span><div><strong>KB swing</strong> — hip hinge power. Drive with glutes. Bell floats.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×40ft</span><div><strong>Suitcase carry</strong> — one DB, one side. Lateral core and grip.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×10ea</span><div><strong>Pallof press</strong> — anti-rotation core. Most basketball-transferable core movement.</div></div>
-      <div class="wo-compressed"><div class="wo-comp-lbl">⚡ 25-Min Version</div>
-        <div class="wo-ex" style="margin-top:7px;"><span class="wo-set">3×10ea</span><div><strong>ATG split squat</strong> — most important movement today.</div></div>
-        <div class="wo-ex"><span class="wo-set">3×max</span><div><strong>Hindu push-ups</strong></div></div>
-        <div class="wo-ex"><span class="wo-set">2×40ft</span><div><strong>Suitcase carry</strong></div></div>
-      </div>
+    <!-- THE SPRING -->
+    <div class="wo-card"><div class="wo-header" onclick="toggleWo('spring')"><div class="wo-hdr-left"><span class="wo-day">04</span><div><div class="wo-title">The Spring<span class="pill pill-t">Longevity</span></div><div class="wo-sub">Balance · reactive tissue · footwork · ~8-10 min</div></div></div><span class="wo-chev" id="chev-spring">▼</span></div>
+    <div class="wo-body" id="body-spring" style="display:none;">
+      <div class="wo-sec-lbl">The longevity keystone · no gear · 1-2 rounds</div>
+      <div class="wo-ex"><span class="wo-set">30s ea</span><div><strong>Single-leg balance</strong> — eyes closed to progress</div></div>
+      <div class="wo-ex"><span class="wo-set">20-30</span><div><strong>Ankle hops</strong> — quick, stiff, springy</div></div>
+      <div class="wo-ex"><span class="wo-set">5ea</span><div><strong>Lateral bounds</strong> — stick the landing</div></div>
+      <div class="wo-ex"><span class="wo-set">20</span><div><strong>Skater steps</strong> — quick feet side to side</div></div>
+      <div class="wo-ex"><span class="wo-set">5</span><div><strong>Get-up to stand</strong> — no hands if you can</div></div>
+      <div class="wo-ex"><span class="wo-set">30s</span><div><strong>Deep squat hold</strong> — sit in the bottom</div></div>
+      <div class="wo-compressed"><div class="wo-comp-lbl">Why this matters most</div><div class="wo-ex" style="margin-top:7px;"><span class="wo-set">—</span><div>It will never feel like a "real" workout — no sweat, no soreness. That's the trap. Balance and reactive tissue fade fast and silent with age, and they decide whether you're on the court at 70 or in the chair. This is the RELOAD-day default. Not the soft option — the one most aimed at the vow.</div></div></div>
     </div></div>
 
-    <div class="wo-card"><div class="wo-header" onclick="toggleWo('fri')"><div class="wo-hdr-left"><span class="wo-day">FRI</span><div><div class="wo-title">Agility + Zone 2<span class="pill pill-z">Zone 2</span></div><div class="wo-sub">Court patterns first · Zone 2 finish · 40 min</div></div></div><span class="wo-chev" id="chev-fri">▼</span></div>
-    <div class="wo-body" id="body-fri" style="display:none;">
-      <div class="wo-sec-lbl">Agility Block — 15 min</div>
-      <div class="wo-ex"><span class="wo-set">3×10yd</span><div><strong>Lateral shuffle</strong> — each direction. Low, balls of feet. Fast ground contact.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×5ea</span><div><strong>Defensive drop step</strong> — open hip, 45-degree drop, accelerate. Most basketball-specific pattern.</div></div>
-      <div class="wo-ex"><span class="wo-set">5 rds</span><div><strong>5-10-5 pro agility</strong> — timed. This is a Supplemental test marker. Track it.</div></div>
-      <div class="wo-ex"><span class="wo-set">3×10yd</span><div><strong>Crossover acceleration</strong> — transfers directly to basketball first step.</div></div>
-      <div class="wo-ex"><span class="wo-set">2 min</span><div><strong>Reactive shadow drill</strong> — random direction changes at 70–80% effort.</div></div>
-      <div class="wo-sec-lbl">Zone 2 Finish — 20 min</div>
-      <div class="wo-ex"><span class="wo-set">20 min</span><div><strong>Incline treadmill</strong> — HR ≤132 BPM. End the week with aerobic work.</div></div>
-      <div class="wo-compressed"><div class="wo-comp-lbl">⚡ 25-Min Version</div>
-        <div class="wo-ex" style="margin-top:7px;"><span class="wo-set">10 min</span><div>Lateral shuffle, drop step, 5-10-5.</div></div>
-        <div class="wo-ex"><span class="wo-set">15 min</span><div>Zone 2 incline.</div></div>
-      </div>
+    <!-- 5-MIN FLOOR -->
+    <div class="wo-card"><div class="wo-header" onclick="toggleWo('floor')"><div class="wo-hdr-left"><span class="wo-day">05</span><div><div class="wo-title">5-Min Floor<span class="pill pill-m">No-Zero</span></div><div class="wo-sub">The "I don't miss" floor · ~5 min</div></div></div><span class="wo-chev" id="chev-floor">▼</span></div>
+    <div class="wo-body" id="body-floor" style="display:none;">
+      <div class="wo-sec-lbl">One round · 1 min each · never skip</div>
+      <div class="wo-ex"><span class="wo-set">1 min</span><div><strong>Push-ups</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">1 min</span><div><strong>Bodyweight squats</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">1 min</span><div><strong>Dead hang or plank</strong></div></div>
+      <div class="wo-ex"><span class="wo-set">1 min</span><div><strong>Lunges</strong> (alternating)</div></div>
+      <div class="wo-ex"><span class="wo-set">1 min</span><div><strong>Flow stretch</strong> — 90/90 → lunge reach → fold</div></div>
+      <div class="wo-compressed"><div class="wo-comp-lbl">Use the timer</div><div class="wo-ex" style="margin-top:7px;"><span class="wo-set">—</span><div>The 5-Min tab has a built-in timer. This keeps the chain alive on the worst days.</div></div></div>
     </div></div>
 
-    <div class="wo-card"><div class="wo-header" onclick="toggleWo('sat')"><div class="wo-hdr-left"><span class="wo-day">SAT</span><div><div class="wo-title">Testing / Hard Thing<span class="pill pill-t">Waypoint</span></div><div class="wo-sub">Every other Sat: AFT or Supplemental · Off weeks: challenge</div></div></div><span class="wo-chev" id="chev-sat">▼</span></div>
-    <div class="wo-body" id="body-sat" style="display:none;">
-      <div class="wo-sec-lbl">Test Saturdays</div>
-      <div class="wo-ex"><span class="wo-set">Wk 1</span><div><strong>AFT Test</strong> — full 5-event battery. Score in Test tab.</div></div>
-      <div class="wo-ex"><span class="wo-set">Wk 3</span><div><strong>Supplemental Test</strong> — dead hang, SL-RDL, MAF run, mobility screen.</div></div>
-      <div class="wo-sec-lbl">Off-Week Challenges</div>
-      <div class="wo-ex"><span class="wo-set">Iron Min</span><div>1-min max reps. Score = total reps. Beat it.</div></div>
-      <div class="wo-ex"><span class="wo-set">Dead Mile</span><div>1-mile ruck or run with sandbag. Time it.</div></div>
-      <div class="wo-ex"><span class="wo-set">Spartan Ghost</span><div>Deadlift + pull progression + farmer carry circuit for time.</div></div>
-      <div class="wo-ex"><span class="wo-set">Mtn Tax</span><div>Long hike with elevation gain. Ruck if possible.</div></div>
-      <div class="wo-ex"><span class="wo-set">Ruck+Ruin</span><div>45-min ruck then max effort one movement. No rest between.</div></div>
-    </div></div>
-
-    <div class="wo-card"><div class="wo-header" onclick="toggleWo('sun')"><div class="wo-hdr-left"><span class="wo-day">SUN</span><div><div class="wo-title">Family Recovery<span class="pill pill-r">Recovery</span></div><div class="wo-sub">Walk · mobility · family · no zero days</div></div></div><span class="wo-chev" id="chev-sun">▼</span></div>
-    <div class="wo-body" id="body-sun" style="display:none;">
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Family walk</strong> — 20–45 min. Counts as Zone 2 if you push the pace.</div></div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Minimum reset</strong> — 10 min floor work. Always. Even Sunday.</div></div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Nap before 3 PM</strong> — 20–25 min max. Legitimate performance recovery.</div></div>
-      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Weekly check</strong> — Apple Health: resting HR, VO2 max, sleep average. 30 seconds.</div></div>
+    <!-- THE HARD THING -->
+    <div class="wo-card"><div class="wo-header" onclick="toggleWo('hard')"><div class="wo-hdr-left"><span class="wo-day">06</span><div><div class="wo-title">The Hard Thing<span class="pill pill-t">Feed the Animal</span></div><div class="wo-sub">Pick ONE · go hard · done</div></div></div><span class="wo-chev" id="chev-hard">▼</span></div>
+    <div class="wo-body" id="body-hard" style="display:none;">
+      <div class="wo-sec-lbl">Pick one. No circuit to memorize — just suffer well.</div>
+      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Hill repeats</strong> — sprint up, walk down, repeat</div></div>
+      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Sandbag carry</strong> — up the hill or for distance/time</div></div>
+      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Tire flips</strong> — sets of 10</div></div>
+      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Sledgehammer strikes</strong> — rounds of 20-30</div></div>
+      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Battle ropes</strong> — 30s on / 30s off</div></div>
+      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Bucket of rocks carry</strong> — the ruck that sucks</div></div>
+      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Assault bike</strong> — 8s all-out / 12s easy intervals</div></div>
+      <div class="wo-ex"><span class="wo-set">—</span><div><strong>Farmer carries</strong> — 50lb sandbags or pinch-carry 45 plates</div></div>
+      <div class="wo-compressed"><div class="wo-comp-lbl">This is the EASY day (the hard one)</div><div class="wo-ex" style="margin-top:7px;"><span class="wo-set">—</span><div>Feed the animal here. The biweekly heavy mile lives here too. Black flag = MORE that sucks, never less. Read the cost next morning, adjust without arguing.</div></div></div>
     </div></div>
 
     <div class="box" style="margin-top:14px;">
@@ -866,7 +854,7 @@ input,select{font-family:'Barlow',sans-serif;}
         <div class="meal-check" id="mchk-breakfast">○</div>
         <div class="meal-content">
           <div class="meal-title">Breakfast</div>
-          <div class="meal-items">Protein shake · D3/K2 · Creatine <span class="meal-opt">(Collagen optional)</span></div>
+          <div class="meal-items">Morning shake (160cal/30g) · Creatine · D3/K2 · Fish oil</div>
         </div>
         <div class="meal-time">Morning</div>
       </div>
@@ -875,7 +863,7 @@ input,select{font-family:'Barlow',sans-serif;}
         <div class="meal-check" id="mchk-snack1">○</div>
         <div class="meal-content">
           <div class="meal-title">Snack</div>
-          <div class="meal-items">Celsius or caffeine · Cheese stick</div>
+          <div class="meal-items">Celsius · Cheese stick</div>
         </div>
         <div class="meal-time">10 AM</div>
       </div>
@@ -884,7 +872,7 @@ input,select{font-family:'Barlow',sans-serif;}
         <div class="meal-check" id="mchk-lunch">○</div>
         <div class="meal-content">
           <div class="meal-title">Lunch</div>
-          <div class="meal-items">Protein · Leafy greens · Starch · Fish oil</div>
+          <div class="meal-items">2 patties (or chicken/pork) · Leafy + cucumber + tomato · Sweet potato optional</div>
         </div>
         <div class="meal-time">Midday</div>
       </div>
@@ -893,7 +881,7 @@ input,select{font-family:'Barlow',sans-serif;}
         <div class="meal-check" id="mchk-snack2">○</div>
         <div class="meal-content">
           <div class="meal-title">Afternoon Snack</div>
-          <div class="meal-items">Greek yogurt or protein · Electrolytes</div>
+          <div class="meal-items">Jocko shake 1.5 (180cal/33g) · Creatine · Electrolytes</div>
         </div>
         <div class="meal-time">2:30 PM</div>
       </div>
@@ -902,7 +890,7 @@ input,select{font-family:'Barlow',sans-serif;}
         <div class="meal-check" id="mchk-dinner">○</div>
         <div class="meal-content">
           <div class="meal-title">Dinner</div>
-          <div class="meal-items">Find the protein. Whatever is made — eat it.</div>
+          <div class="meal-items">Family dinner — protein first. ~950 cal budget. Don't go under-fed.</div>
         </div>
         <div class="meal-time">Evening</div>
       </div>
@@ -911,7 +899,7 @@ input,select{font-family:'Barlow',sans-serif;}
         <div class="meal-check" id="mchk-snack3">○</div>
         <div class="meal-content">
           <div class="meal-title">Evening Snack <span class="meal-opt">(optional)</span></div>
-          <div class="meal-items">Jocko protein 30–40g if short on daily total</div>
+          <div class="meal-items">If short: Jell-O fluff, pudding, cheese, or shake. Top up — don't under-eat.</div>
         </div>
         <div class="meal-time">Pre-bed</div>
       </div>
@@ -1203,44 +1191,45 @@ function getTodayProtTotal(){return((STATE.daily[TODAY]||{}).protLog||[]).reduce
 function getTodayWaterTotal(){return((STATE.daily[TODAY]||{}).waterLog||[]).reduce((a,e)=>a+e.amt,0);}
 
 function updateHUD(){
+  // The visible HUD is now the Morning Report (Calculate). The old score/pillar
+  // cards were removed, so this function only keeps the still-useful background
+  // logic (chain auto-mark) and guards every DOM call so nothing throws.
   const sc=calcScore();
-  const scoreEl=document.getElementById('hud-score');
-  scoreEl.textContent=sc.total;
-  scoreEl.style.color=sc.total>=4?'var(--green)':sc.total>=2?'var(--amber)':'var(--red)';
-
-  // Auto-mark chain at 4+
   if(sc.total>=4&&!STATE.chain[TODAY]){STATE.chain[TODAY]=true;saveState();buildChain();}
-
-  // Quest
-  fracUpdate('hud-well-frac','hud-well-sub',sc.wellChecked,4,4,'need 4 of 4','');
-  // Steward
-  fracUpdate('hud-stew-frac',null,sc.stewCount,4,3,'','');
+  // Any legacy elements, if present, get updated; if absent, skip silently.
+  const scoreEl=document.getElementById('hud-score');
+  if(scoreEl){
+    scoreEl.textContent=sc.total;
+    scoreEl.style.color=sc.total>=4?'var(--green)':sc.total>=2?'var(--amber)':'var(--red)';
+  }
+  if(document.getElementById('hud-well-frac')) fracUpdate('hud-well-frac','hud-well-sub',sc.wellChecked,4,4,'need 4 of 4','');
+  if(document.getElementById('hud-stew-frac')) fracUpdate('hud-stew-frac',null,sc.stewCount,4,3,'','');
   ['sleep','water','prot','nutr'].forEach((k,i)=>{
     const dot=document.getElementById('sdot-'+k);
-    const met=[sc.sleepOk,sc.waterOk,sc.protOk,sc.nutrOk][i];
-    dot.className='stew-dot'+(met?' on':'');
+    if(dot){ const met=[sc.sleepOk,sc.waterOk,sc.protOk,sc.nutrOk][i]; dot.className='stew-dot'+(met?' on':''); }
   });
-  // Invest
-  fracUpdate('hud-inv-frac','hud-inv-sub',sc.invChecked,4,2,'need 2 of 4','');
-  // Compete
+  if(document.getElementById('hud-inv-frac')) fracUpdate('hud-inv-frac','hud-inv-sub',sc.invChecked,4,2,'need 2 of 4','');
   const compEl=document.getElementById('hud-comp-frac');
-  const compSub=document.getElementById('hud-comp-sub');
-  const compCount=sc.compCount;
-  compEl.textContent=compCount+'/1';
-  compEl.className='pc-frac '+(compCount===0?'red':compCount===1?'green':'green');
-  compSub.textContent=compCount===0?'log a strike':compCount===1?'struck \u2713':'multiple \u2713';
-
-  // Feel cards
+  if(compEl){
+    const compSub=document.getElementById('hud-comp-sub');
+    const compCount=sc.compCount;
+    compEl.textContent=compCount+'/1';
+    compEl.className='pc-frac '+(compCount===0?'red':'green');
+    if(compSub) compSub.textContent=compCount===0?'log a strike':compCount===1?'struck \u2713':'multiple \u2713';
+  }
   const d=STATE.daily[TODAY]||{};
   const feelEl=document.getElementById('hud-feeling');
-  feelEl.textContent=d.feeling||'—';
-  feelEl.style.color=d.feeling==='rested'?'var(--green)':d.feeling==='ok'?'var(--amber)':d.feeling==='tired'?'var(--red)':'var(--t1)';
-  document.getElementById('hud-load').textContent=d.load||'—';
-  document.getElementById('hud-tmrw').textContent=d.tmrw||'—';
+  if(feelEl){
+    feelEl.textContent=d.feeling||'—';
+    feelEl.style.color=d.feeling==='rested'?'var(--green)':d.feeling==='ok'?'var(--amber)':d.feeling==='tired'?'var(--red)':'var(--t1)';
+  }
+  if(document.getElementById('hud-load')) document.getElementById('hud-load').textContent=d.load||'—';
+  if(document.getElementById('hud-tmrw')) document.getElementById('hud-tmrw').textContent=d.tmrw||'—';
 }
 
 function fracUpdate(fracId,subId,count,max,threshold,belowMsg,aboveMsg){
   const el=document.getElementById(fracId);
+  if(!el) return;
   el.textContent=count+'/'+max;
   if(count===0||count<threshold)el.className='pc-frac red';
   else if(count>=max)el.className='pc-frac green';
@@ -1823,10 +1812,266 @@ function initApp(){
   renderHistAFT(); renderHistSupp(); renderSuppCompare();
   renderHistDaily(); renderAverages();
   restoreToday();
+  restoreCalc();
   renderQuestFields();
   updateHUD();
   paintFire();
 }
+
+
+// ════════════════════════════════════════════════════════════
+//  THE MORNING REPORT ENGINE
+//  Two inputs (sleep, recovery) + recent logs → today's orders.
+//  Transparent rules, editable thresholds. Days 1-3 pre-planned.
+// ════════════════════════════════════════════════════════════
+
+// Editable thresholds (defaults; tune after 2 weeks of real data)
+function defaultThresholds(){
+  return {
+    waterFloor: 80, waterPush: 100,
+    proteinFloor: 100, proteinFull: 150,
+    moveBreak: 45,            // under/over 45 min
+    sleepGood: 7, sleepPush: 8,
+    hardDayMin: 45,           // a day with >= this many min counts as "hard load"
+    bigDayMin: 60,            // 3 of these in a row = high output warning
+    lowMoveMin: 30,           // under this for 3 days = nudge to move
+    recoveryLow: 50           // bevel recovery below this = depleted
+  };
+}
+function getTh(){
+  if(!STATE.thresholds) STATE.thresholds = defaultThresholds();
+  // backfill any missing keys
+  const d = defaultThresholds();
+  for(const k in d){ if(STATE.thresholds[k]===undefined) STATE.thresholds[k]=d[k]; }
+  return STATE.thresholds;
+}
+
+// How many days of logged data do we have (with any meaningful entry)?
+function loggedDayCount(){
+  if(!STATE.daily) return 0;
+  return Object.keys(STATE.daily).filter(k=>{
+    if(k===TODAY) return false; // today not counted — seed plan keys off prior days only
+    const d=STATE.daily[k];
+    return d && (d.sleepMin || (d.protLog&&d.protLog.length) || (d.waterLog&&d.waterLog.length) || d.moveMin || d.dayType);
+  }).length;
+}
+
+// Average a field over the last N logged days (excluding today)
+function recentAvg(getter, n){
+  const vals=[];
+  for(let i=1;i<=n+3 && vals.length<n;i++){
+    const dt=new Date(NOW); dt.setDate(dt.getDate()-i);
+    const k=localDateStr(dt);
+    const d=STATE.daily&&STATE.daily[k];
+    if(d){ const v=getter(d); if(v!==null&&v!==undefined&&!isNaN(v)) vals.push(v); }
+  }
+  if(!vals.length) return null;
+  return vals.reduce((a,b)=>a+b,0)/vals.length;
+}
+function recentDays(n){
+  const out=[];
+  for(let i=1;i<=n;i++){
+    const dt=new Date(NOW); dt.setDate(dt.getDate()-i);
+    const k=localDateStr(dt);
+    out.push(STATE.daily&&STATE.daily[k]?STATE.daily[k]:null);
+  }
+  return out; // [yesterday, day before, ...]
+}
+function dayProt(d){ return d?(d.protLog||[]).reduce((a,e)=>a+e.amt,0):0; }
+function dayWater(d){ return d?(d.waterLog||[]).reduce((a,e)=>a+e.amt,0):0; }
+
+// ── The pre-plan for days 1-3 ──
+const SEED_PLAN = [
+  {dayType:'reload',  moveLabel:'under 45 min', why:'Day 1 — ease in. Reload to start, build the baseline.'},
+  {dayType:'priming', moveLabel:'45+ min',      why:'Day 2 — Priming. Build the engine.'},
+  {dayType:'easy',    moveLabel:'45+ min',      why:'Day 3 — Easy day (the hard one). Go.'}
+];
+
+function runCalculate(){
+  const hr=parseInt(document.getElementById('calc-sleep-hr').value)||0;
+  const mn=parseInt(document.getElementById('calc-sleep-min').value)||0;
+  const sleepMin=hr*60+mn;
+  const recovery=document.getElementById('calc-recovery').value!==''?parseInt(document.getElementById('calc-recovery').value):null;
+
+  // Save sleep + recovery into today's log
+  if(!STATE.daily[TODAY])STATE.daily[TODAY]={};
+  if(sleepMin) STATE.daily[TODAY].sleepMin=sleepMin;
+  if(recovery!==null) STATE.daily[TODAY].recovery=recovery;
+  STATE.daily[TODAY].calcRun=true;
+  saveState();
+
+  const th=getTh();
+  const haveData = loggedDayCount();   // days already logged (before today)
+  const rows=[]; const why=[]; const flags=[];
+
+  // ════ DAYS 1-3: SEED PLAN ════
+  if(haveData < 3){
+    const seed=SEED_PLAN[haveData] || SEED_PLAN[2];
+    rows.push(fcRow('WATER', th.waterPush+'oz', 'gold'));
+    rows.push(fcRow('PROTEIN', th.proteinFull+'g', 'gold'));
+    rows.push(fcRow('MOVEMENT', seed.moveLabel, 'blue'));
+    rows.push(fcRow('DAY TYPE', dayTypeLabel(seed.dayType), dayTypeColor(seed.dayType)));
+    rows.push(fcRow('SLEEP TONIGHT', th.sleepPush+'h+', 'teal'));
+    why.push('<b>On-ramp (Day '+(haveData+1)+' of 3):</b> '+seed.why+' Until there are 3 days of logs, the report asks for the best of each lever to build a strong baseline. Real data-driven orders begin Day 4.');
+    // relational/spiritual still checked from yesterday
+    addPriorityFlags(flags, why);
+    paintForecast(rows, flags, why);
+    return;
+  }
+
+  // ════ DAY 4+: DATA-DRIVEN ════
+  const yest = recentDays(3); // [yesterday, dby, dby2]
+  const recovLow = (recovery!==null && recovery < th.recoveryLow);
+  const sleepShort = (sleepMin>0 && sleepMin < th.sleepGood*60);
+  const depleted = recovLow || sleepShort;
+
+  // WATER
+  const wAvg=recentAvg(dayWater,3);
+  if(wAvg!==null && wAvg < th.waterFloor){
+    rows.push(fcRow('WATER', th.waterPush+'oz', 'gold'));
+    why.push('<b>Water '+th.waterPush+'oz:</b> your 3-day average ('+Math.round(wAvg)+'oz) is under '+th.waterFloor+'. Catch up — low hydration makes you mistake thirst for hunger.');
+  } else {
+    rows.push(fcRow('WATER', th.waterFloor+'oz+', 'green'));
+    why.push('<b>Water '+th.waterFloor+'oz+:</b> you\'ve been consistent. Maintain.');
+  }
+  if(depleted){ // override: depleted days demand hydration
+    rows[rows.length-1]=fcRow('WATER', th.waterPush+'oz', 'gold');
+    why[why.length-1]='<b>Water '+th.waterPush+'oz:</b> you\'re depleted (low sleep/recovery) — lock in hydration today, it protects you when the tank is low.';
+  }
+
+  // PROTEIN
+  const pAvg=recentAvg(dayProt,3);
+  if(pAvg!==null && pAvg < th.proteinFull){
+    rows.push(fcRow('PROTEIN', th.proteinFull+'g', 'gold'));
+    why.push('<b>Protein '+th.proteinFull+'g:</b> your 3-day average ('+Math.round(pAvg)+'g) is under target. Rebuild — and protein is the lever that drives the body change.');
+  } else {
+    rows.push(fcRow('PROTEIN', th.proteinFloor+'g', 'green'));
+    why.push('<b>Protein '+th.proteinFloor+'g:</b> you\'ve been hitting it — floor is enough today.');
+  }
+  if(depleted){
+    rows[rows.length-1]=fcRow('PROTEIN', th.proteinFull+'g', 'gold');
+    why[why.length-1]='<b>Protein '+th.proteinFull+'g:</b> depleted days wreck eating discipline — hit the full number so a tired day doesn\'t become a blown one.';
+  }
+
+  // MOVEMENT minutes recommendation
+  const mAvg=recentAvg(d=>d.moveMin||0,3);
+  let moveRec;
+  if(mAvg!==null && mAvg < th.lowMoveMin){
+    moveRec=th.moveBreak+'+ min'; 
+    why.push('<b>Movement '+th.moveBreak+'+ min:</b> your recent movement is low ('+Math.round(mAvg)+' min avg). Time to get after it.');
+  } else {
+    moveRec='under '+th.moveBreak+' ok';
+    why.push('<b>Movement:</b> you\'ve been moving well — let the day type below set the dose.');
+  }
+
+  // DAY TYPE — the synthesizer
+  const minsY = yest[0]?(yest[0].moveMin||0):0;
+  const minsDby = yest[1]?(yest[1].moveMin||0):0;
+  const minsDby2 = yest[2]?(yest[2].moveMin||0):0;
+  const hardStreak = (minsY>=th.hardDayMin && minsDby>=th.hardDayMin && minsDby2>=th.hardDayMin);
+  const bigStreak = (minsY>=th.bigDayMin && minsDby>=th.bigDayMin && minsDby2>=th.bigDayMin);
+  const easyTypeStreak = ([yest[0],yest[1],yest[2]].filter(d=>d&&d.dayType==='easy').length>=3);
+
+  let dtype;
+  if(depleted || hardStreak || easyTypeStreak){
+    dtype='reload';
+    if(depleted) why.push('<b>RELOAD day:</b> low sleep/recovery — don\'t stack hard training on a depleted system. Restock so the next Easy day pays off.');
+    else why.push('<b>RELOAD day:</b> three hard days in a row. This is the pattern that plateaus you — not the work, the missing restock. Reload today.');
+  } else if(mAvg!==null && mAvg < th.lowMoveMin && !depleted){
+    dtype='easy';
+    why.push('<b>EASY day (the hard one):</b> you\'re rested and recent load is light — tank\'s full. Go hard.');
+  } else {
+    dtype='priming';
+    why.push('<b>PRIMING day:</b> middle gear — build the engine, don\'t empty it. Holding back today is the point.');
+  }
+  // movement label aligns with day type
+  if(dtype==='reload') moveRec='under '+th.moveBreak+' min';
+  else if(dtype==='easy') moveRec=th.moveBreak+'+ min';
+
+  rows.push(fcRow('MOVEMENT', moveRec, 'blue'));
+  rows.push(fcRow('DAY TYPE', dayTypeLabel(dtype), dayTypeColor(dtype)));
+
+  // SLEEP TONIGHT
+  const sAvg=recentAvg(d=>d.sleepMin||0,3);
+  if(sAvg!==null && sAvg < th.sleepGood*60){
+    rows.push(fcRow('SLEEP TONIGHT', th.sleepPush+'h+', 'gold'));
+    why.push('<b>Sleep '+th.sleepPush+'h+ tonight:</b> your 3-day average is under '+th.sleepGood+'h. Get to bed early — the debt is compounding.');
+  } else {
+    rows.push(fcRow('SLEEP TONIGHT', th.sleepGood+'h+', 'teal'));
+    why.push('<b>Sleep '+th.sleepGood+'h+ tonight:</b> you\'ve been getting enough — hold the line.');
+  }
+
+  addPriorityFlags(flags, why);
+  paintForecast(rows, flags, why);
+}
+
+// Spiritual / Relational: PRIORITIZE if missed YESTERDAY (never miss two)
+function addPriorityFlags(flags, why){
+  const y=recentDays(1)[0];
+  const sourceMissed = !y || getQuestScore(y) < 1;  // no source entry yesterday
+  const relMissed = !y || (['marriage','family','mentor','friends'].filter(k=>y['inv_'+k]).length < 1);
+  if(sourceMissed){
+    flags.push('<div class="fc-flag" style="border-color:var(--amber);color:var(--amber);">&#9888; PRIORITIZE SOURCE — missed yesterday. Never two days. Open the Quest.</div>');
+    why.push('<b>Prioritize Source:</b> no devotional logged yesterday. The rule is never miss two — today is non-negotiable.');
+  }
+  if(relMissed){
+    flags.push('<div class="fc-flag" style="border-color:var(--teal);color:var(--teal);">&#9888; PRIORITIZE PEOPLE — missed yesterday. Never two days. Reach out.</div>');
+    why.push('<b>Prioritize People:</b> no relational investment logged yesterday. Never miss two — connect today.');
+  }
+}
+
+function dayTypeLabel(t){ return t==='easy'?'EASY (go hard)':t==='priming'?'PRIMING':'RELOAD'; }
+function dayTypeColor(t){ return t==='easy'?'red':t==='priming'?'gold':'teal'; }
+
+function fcRow(label, value, color){
+  return '<div class="fc-row"><span class="fc-lbl">'+label+'</span><span class="fc-val '+color+'">'+value+'</span></div>';
+}
+
+function paintForecast(rows, flags, why){
+  document.getElementById('forecast-rows').innerHTML=rows.join('');
+  document.getElementById('forecast-flags').innerHTML=flags.join('');
+  document.getElementById('forecast-why').innerHTML=why.map(w=>'<div style="padding:4px 0;border-bottom:1px solid var(--bdr);">'+w+'</div>').join('');
+  document.getElementById('calc-output').style.display='block';
+  const now=new Date();
+  document.getElementById('calc-daystamp').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+}
+
+function toggleWhy(){
+  const box=document.getElementById('calc-why-box');
+  const btn=document.getElementById('why-btn');
+  const showing=box.style.display!=='none';
+  box.style.display=showing?'none':'block';
+  btn.textContent=showing?'Show the reasoning':'Hide the reasoning';
+}
+
+// ── Movement logging ──
+function saveMoveMin(){
+  const v=parseInt(document.getElementById('move-min').value)||0;
+  if(!STATE.daily[TODAY])STATE.daily[TODAY]={};
+  STATE.daily[TODAY].moveMin=v;
+  saveState();
+}
+function setDayType(t){
+  if(!STATE.daily[TODAY])STATE.daily[TODAY]={};
+  STATE.daily[TODAY].dayType = (STATE.daily[TODAY].dayType===t)?null:t;
+  saveState();
+  ['easy','priming','reload'].forEach(x=>{
+    const el=document.getElementById('dtype-'+x);
+    if(el) el.className='tier-btn'+(STATE.daily[TODAY].dayType===x?' on':'');
+  });
+}
+
+// Restore today's calc inputs + movement on load
+function restoreCalc(){
+  const d=STATE.daily[TODAY]||{};
+  if(d.sleepMin){ const h=Math.floor(d.sleepMin/60),m=d.sleepMin%60; var sh=document.getElementById('calc-sleep-hr'),sm=document.getElementById('calc-sleep-min'); if(sh)sh.value=h||''; if(sm)sm.value=m||''; }
+  if(d.recovery!==undefined && d.recovery!==null){ var rc=document.getElementById('calc-recovery'); if(rc)rc.value=d.recovery; }
+  if(d.moveMin){ var mm=document.getElementById('move-min'); if(mm)mm.value=d.moveMin; }
+  if(d.dayType){ var el=document.getElementById('dtype-'+d.dayType); if(el)el.className='tier-btn on'; }
+  if(d.calcRun){ try{ runCalculate(); }catch(e){} }
+}
+
+
 
 try{ loadFromFirebase(); }catch(e){ console.error(e); try{initApp();}catch(_){} }
 </script>

@@ -1322,7 +1322,7 @@ function saveQuestField(key){
   const val=document.getElementById('quest-'+key).value.trim();
   if(!STATE.daily[TODAY])STATE.daily[TODAY]={};
   STATE.daily[TODAY]['quest_'+key]=val||null;
-  saveState();
+  saveState();refreshStatus();
   updateQuestScore();
   updateHUD();
   renderHistDaily();
@@ -1337,7 +1337,7 @@ function toggleDeclaration(){
   btn.className='decl-btn'+(on?' on':'');
   document.getElementById('quest-decl-icon').textContent=on?'●':'○';
   document.getElementById('quest-decl-lbl').textContent=on?'Affirmed today ✓':'I affirm this today';
-  updateQuestScore();updateHUD();renderHistDaily();
+  updateQuestScore();updateHUD();renderHistDaily();refreshStatus();
 }
 
 function getQuestScore(d){
@@ -1392,7 +1392,7 @@ function setFeeling(val){
 function toggleInvest(key){
   if(!STATE.daily[TODAY])STATE.daily[TODAY]={};
   STATE.daily[TODAY]['inv_'+key]=!STATE.daily[TODAY]['inv_'+key];
-  saveState();
+  saveState();refreshStatus();
   ['marriage','family','mentor','friends'].forEach(k=>{
     document.getElementById('inv-'+k).className='chk-btn'+(STATE.daily[TODAY]['inv_'+k]?' on':'');
   });
@@ -1476,9 +1476,9 @@ function addProtein(){
   if(!STATE.daily[TODAY])STATE.daily[TODAY]={};
   if(!STATE.daily[TODAY].protLog)STATE.daily[TODAY].protLog=[];
   STATE.daily[TODAY].protLog.push({amt,time:new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
-  saveState();renderProtLog();updateHUD();
+  saveState();renderProtLog();updateHUD();refreshStatus();
 }
-function delProt(i){STATE.daily[TODAY].protLog.splice(i,1);saveState();renderProtLog();updateHUD();}
+function delProt(i){STATE.daily[TODAY].protLog.splice(i,1);saveState();renderProtLog();updateHUD();refreshStatus();}
 function renderProtLog(){
   const log=(STATE.daily[TODAY]||{}).protLog||[];
   const total=log.reduce((a,e)=>a+e.amt,0);
@@ -1503,7 +1503,7 @@ function addWater(amt){
   if(!STATE.daily[TODAY])STATE.daily[TODAY]={};
   if(!STATE.daily[TODAY].waterLog)STATE.daily[TODAY].waterLog=[];
   STATE.daily[TODAY].waterLog.push({amt,time:new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})});
-  saveState();renderWaterLog();updateHUD();
+  saveState();renderWaterLog();updateHUD();refreshStatus();
 }
 function addWaterCustom(){
   const inp=document.getElementById('water-add');
@@ -1511,7 +1511,7 @@ function addWaterCustom(){
   if(!amt)return;
   inp.value='';addWater(amt);
 }
-function delWater(i){STATE.daily[TODAY].waterLog.splice(i,1);saveState();renderWaterLog();updateHUD();}
+function delWater(i){STATE.daily[TODAY].waterLog.splice(i,1);saveState();renderWaterLog();updateHUD();refreshStatus();}
 function renderWaterLog(){
   const log=(STATE.daily[TODAY]||{}).waterLog||[];
   const total=log.reduce((a,e)=>a+e.amt,0);
@@ -1681,6 +1681,7 @@ function renderAverages(){
 }
 
 function showTab(id,btn){
+  if(id==='hud'){ try{ if((STATE.daily[TODAY]||{}).orders) renderForecastStatus(); }catch(e){} }
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('tab-'+id).classList.add('on');
@@ -1898,24 +1899,27 @@ function runCalculate(){
   if(sleepMin) STATE.daily[TODAY].sleepMin=sleepMin;
   if(recovery!==null) STATE.daily[TODAY].recovery=recovery;
   STATE.daily[TODAY].calcRun=true;
-  saveState();
 
   const th=getTh();
   const haveData = loggedDayCount();   // days already logged (before today)
-  const rows=[]; const why=[]; const flags=[];
+  const why=[]; const flags=[];
+  // orders: structured targets we store so the rows can show live status all day
+  const orders={ water:null, protein:null, moveTarget:null, dayType:null, sleepTonight:null };
 
   // ════ DAYS 1-3: SEED PLAN ════
   if(haveData < 3){
     const seed=SEED_PLAN[haveData] || SEED_PLAN[2];
-    rows.push(fcRow('WATER', th.waterPush+'oz', 'gold'));
-    rows.push(fcRow('PROTEIN', th.proteinFull+'g', 'gold'));
-    rows.push(fcRow('MOVEMENT', seed.moveLabel, 'blue'));
-    rows.push(fcRow('DAY TYPE', dayTypeLabel(seed.dayType), dayTypeColor(seed.dayType)));
-    rows.push(fcRow('SLEEP TONIGHT', th.sleepPush+'h+', 'teal'));
+    orders.water=th.waterPush;
+    orders.protein=th.proteinFull;
+    orders.moveTarget=(seed.dayType==='reload')?0:th.moveBreak; // reload=under, else 45+
+    orders.dayType=seed.dayType;
+    orders.sleepTonight=th.sleepPush;
     why.push('<b>On-ramp (Day '+(haveData+1)+' of 3):</b> '+seed.why+' Until there are 3 days of logs, the report asks for the best of each lever to build a strong baseline. Real data-driven orders begin Day 4.');
-    // relational/spiritual still checked from yesterday
+    STATE.daily[TODAY].orders=orders;
+    saveState();
     addPriorityFlags(flags, why);
-    paintForecast(rows, flags, why);
+    STATE.daily[TODAY].forecastWhy=why; STATE.daily[TODAY].forecastFlags=flags; saveState();
+    renderForecastStatus();
     return;
   }
 
@@ -1928,28 +1932,28 @@ function runCalculate(){
   // WATER
   const wAvg=recentAvg(dayWater,3);
   if(wAvg!==null && wAvg < th.waterFloor){
-    rows.push(fcRow('WATER', th.waterPush+'oz', 'gold'));
+    orders.water=th.waterPush;
     why.push('<b>Water '+th.waterPush+'oz:</b> your 3-day average ('+Math.round(wAvg)+'oz) is under '+th.waterFloor+'. Catch up — low hydration makes you mistake thirst for hunger.');
   } else {
-    rows.push(fcRow('WATER', th.waterFloor+'oz+', 'green'));
+    orders.water=th.waterFloor;
     why.push('<b>Water '+th.waterFloor+'oz+:</b> you\'ve been consistent. Maintain.');
   }
-  if(depleted){ // override: depleted days demand hydration
-    rows[rows.length-1]=fcRow('WATER', th.waterPush+'oz', 'gold');
+  if(depleted){
+    orders.water=th.waterPush;
     why[why.length-1]='<b>Water '+th.waterPush+'oz:</b> you\'re depleted (low sleep/recovery) — lock in hydration today, it protects you when the tank is low.';
   }
 
   // PROTEIN
   const pAvg=recentAvg(dayProt,3);
   if(pAvg!==null && pAvg < th.proteinFull){
-    rows.push(fcRow('PROTEIN', th.proteinFull+'g', 'gold'));
+    orders.protein=th.proteinFull;
     why.push('<b>Protein '+th.proteinFull+'g:</b> your 3-day average ('+Math.round(pAvg)+'g) is under target. Rebuild — and protein is the lever that drives the body change.');
   } else {
-    rows.push(fcRow('PROTEIN', th.proteinFloor+'g', 'green'));
+    orders.protein=th.proteinFloor;
     why.push('<b>Protein '+th.proteinFloor+'g:</b> you\'ve been hitting it — floor is enough today.');
   }
   if(depleted){
-    rows[rows.length-1]=fcRow('PROTEIN', th.proteinFull+'g', 'gold');
+    orders.protein=th.proteinFull;
     why[why.length-1]='<b>Protein '+th.proteinFull+'g:</b> depleted days wreck eating discipline — hit the full number so a tired day doesn\'t become a blown one.';
   }
 
@@ -1984,40 +1988,36 @@ function runCalculate(){
     dtype='priming';
     why.push('<b>PRIMING day:</b> middle gear — build the engine, don\'t empty it. Holding back today is the point.');
   }
-  // movement label aligns with day type
-  if(dtype==='reload') moveRec='under '+th.moveBreak+' min';
-  else if(dtype==='easy') moveRec=th.moveBreak+'+ min';
-
-  rows.push(fcRow('MOVEMENT', moveRec, 'blue'));
-  rows.push(fcRow('DAY TYPE', dayTypeLabel(dtype), dayTypeColor(dtype)));
+  // movement target aligns with day type: reload=0 (under), else 45+
+  orders.moveTarget=(dtype==='reload')?0:th.moveBreak;
+  orders.dayType=dtype;
 
   // SLEEP TONIGHT
   const sAvg=recentAvg(d=>d.sleepMin||0,3);
   if(sAvg!==null && sAvg < th.sleepGood*60){
-    rows.push(fcRow('SLEEP TONIGHT', th.sleepPush+'h+', 'gold'));
+    orders.sleepTonight=th.sleepPush;
     why.push('<b>Sleep '+th.sleepPush+'h+ tonight:</b> your 3-day average is under '+th.sleepGood+'h. Get to bed early — the debt is compounding.');
   } else {
-    rows.push(fcRow('SLEEP TONIGHT', th.sleepGood+'h+', 'teal'));
+    orders.sleepTonight=th.sleepGood;
     why.push('<b>Sleep '+th.sleepGood+'h+ tonight:</b> you\'ve been getting enough — hold the line.');
   }
 
   addPriorityFlags(flags, why);
-  paintForecast(rows, flags, why);
+  STATE.daily[TODAY].orders=orders;
+  STATE.daily[TODAY].forecastWhy=why; STATE.daily[TODAY].forecastFlags=flags;
+  saveState();
+  renderForecastStatus();
 }
 
 // Spiritual / Relational: PRIORITIZE if missed YESTERDAY (never miss two)
 function addPriorityFlags(flags, why){
+  // Pommel + Helve always lead the Report as the day's priorities (permanent top lines).
+  // Here we only add extra reasoning when one was missed yesterday — an added nudge, not a separate flag.
   const y=recentDays(1)[0];
-  const sourceMissed = !y || getQuestScore(y) < 1;  // no source entry yesterday
+  const sourceMissed = !y || getQuestScore(y) < 1;
   const relMissed = !y || (['marriage','family','mentor','friends'].filter(k=>y['inv_'+k]).length < 1);
-  if(sourceMissed){
-    flags.push('<div class="fc-flag" style="border-color:var(--amber);color:var(--amber);">&#9888; PRIORITIZE SOURCE — missed yesterday. Never two days. Open the Quest.</div>');
-    why.push('<b>Prioritize Source:</b> no devotional logged yesterday. The rule is never miss two — today is non-negotiable.');
-  }
-  if(relMissed){
-    flags.push('<div class="fc-flag" style="border-color:var(--teal);color:var(--teal);">&#9888; PRIORITIZE PEOPLE — missed yesterday. Never two days. Reach out.</div>');
-    why.push('<b>Prioritize People:</b> no relational investment logged yesterday. Never miss two — connect today.');
-  }
+  why.push('<b>Pommel (Source) leads every day:</b> it grounds everything else.'+(sourceMissed?' \u2014 and you missed it yesterday, so today is non-negotiable.':''));
+  why.push('<b>Helve (People) is second every day:</b> the whole point of staying ready.'+(relMissed?' \u2014 missed yesterday, so reach out today.':''));
 }
 
 function dayTypeLabel(t){ return t==='easy'?'EASY (go hard)':t==='priming'?'PRIMING':'RELOAD'; }
@@ -2036,6 +2036,95 @@ function paintForecast(rows, flags, why){
   document.getElementById('calc-daystamp').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
 }
 
+
+// ── Render the day's orders WITH live status (orders + completion in one) ──
+function renderForecastStatus(){
+  const d=STATE.daily[TODAY]||{};
+  const o=d.orders;
+  if(!o){ return; }
+  const rowsEl=document.getElementById('forecast-rows');
+  if(!rowsEl) return;
+
+  // current progress
+  const curWater=(d.waterLog||[]).reduce((a,e)=>a+e.amt,0);
+  const curProt=(d.protLog||[]).reduce((a,e)=>a+e.amt,0);
+  const curMove=d.moveMin||0;
+  const sourceDone=(typeof getQuestScore==='function'?getQuestScore(d):0)>=1;
+  const relDone=['marriage','family','mentor','friends'].filter(k=>d['inv_'+k]).length>=1;
+  const dayTypeSet=!!d.dayType;
+
+  const rows=[];
+
+  // ── PRIORITIES FIRST: Pommel + Helve lead the Report every day ──
+  // POMMEL (Source) — top priority, always shown
+  rows.push(statusRow('POMMEL \u2014 Source', sourceDone?'done today':'not yet \u2014 first priority', sourceDone, sourceDone?1:0, 'gold'));
+  // HELVE (People) — second priority, always shown
+  rows.push(statusRow('HELVE \u2014 People', relDone?'done today':'not yet \u2014 reach out', relDone, relDone?1:0, 'teal'));
+
+  // WATER — live
+  if(o.water!=null){
+    const hit=curWater>=o.water;
+    rows.push(statusRow('WATER', curWater+' / '+o.water+'oz', hit, Math.min(curWater/o.water,1)));
+  }
+  // PROTEIN — live
+  if(o.protein!=null){
+    const hit=curProt>=o.protein;
+    rows.push(statusRow('PROTEIN', curProt+' / '+o.protein+'g', hit, Math.min(curProt/o.protein,1)));
+  }
+  // MOVEMENT — live (target 0 means "under 45 ok"; >0 means hit that many min)
+  if(o.moveTarget!=null){
+    if(o.moveTarget===0){
+      const hit=curMove>0; // any movement logged satisfies a reload/under day
+      rows.push(statusRow('MOVEMENT', hit?(curMove+' min logged'):'log any movement', hit, hit?1:0));
+    } else {
+      const hit=curMove>=o.moveTarget;
+      rows.push(statusRow('MOVEMENT', curMove+' / '+o.moveTarget+'+ min', hit, Math.min(curMove/o.moveTarget,1)));
+    }
+  }
+  // DAY TYPE — checks when logged; shows recommended vs logged
+  if(o.dayType){
+    const logged=d.dayType;
+    const match = logged ? '' : '';
+    const txt = logged ? (dayTypeLabel(logged)+(logged===o.dayType?'':' (rec: '+dayTypeLabel(o.dayType)+')')) : 'rec: '+dayTypeLabel(o.dayType);
+    rows.push(statusRow('DAY TYPE', txt, dayTypeSet, dayTypeSet?1:0, dayTypeColor(o.dayType)));
+  }
+  // SLEEP TONIGHT — forward-looking, no live status
+  if(o.sleepTonight!=null){
+    rows.push(statusRow('SLEEP TONIGHT', o.sleepTonight+'h+ (tonight)', false, 0, 'teal', true));
+  }
+
+  rowsEl.innerHTML=rows.join('');
+
+  // Pommel + Helve are now permanent top lines, not "missed yesterday" flags.
+  const flagsEl=document.getElementById('forecast-flags');
+  if(flagsEl) flagsEl.innerHTML='';
+
+  // why + daystamp
+  const whyEl=document.getElementById('forecast-why');
+  if(whyEl && d.forecastWhy) whyEl.innerHTML=d.forecastWhy.map(w=>'<div style="padding:4px 0;border-bottom:1px solid var(--bdr);">'+w+'</div>').join('');
+  document.getElementById('calc-output').style.display='block';
+  const stampEl=document.getElementById('calc-daystamp');
+  if(stampEl){ const now=new Date(); stampEl.textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'}); }
+}
+
+function refreshStatus(){ try{ if((STATE.daily[TODAY]||{}).orders) renderForecastStatus(); }catch(e){} }
+function statusRow(label, valText, hit, frac, color, forward){
+  color=color||'gold';
+  const check = hit ? '<span style="color:var(--green);font-weight:800;margin-right:6px;">\u2713</span>' : (forward?'':'<span style="color:var(--t3);margin-right:6px;">\u25cb</span>');
+  const bar = forward ? '' : '<div style="height:4px;background:var(--bdr);border-radius:3px;margin-top:5px;overflow:hidden;"><div style="height:100%;width:'+Math.round((frac||0)*100)+'%;background:'+(hit?'var(--green)':'var(--'+color+')')+';border-radius:3px;transition:width .3s;"></div></div>';
+  return '<div class="fc-row" style="display:block;padding:11px 4px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+    '<span class="fc-lbl">'+label+'</span>'+
+    '<span class="fc-val '+(hit?'green':color)+'" style="font-size:16px;">'+check+valText+'</span>'+
+    '</div>'+bar+'</div>';
+}
+function flagRow(label, done, color, sub){
+  const bg = done ? 'rgba(80,220,120,0.08)' : 'rgba(255,255,255,0.02)';
+  const bc = done ? 'var(--green)' : color;
+  const check = done ? '\u2713 ' : '\u26a0 ';
+  return '<div class="fc-flag" style="border-color:'+bc+';color:'+bc+';background:'+bg+';">'+check+label+' <span style="font-weight:400;font-size:11px;opacity:0.8;">\u00b7 '+sub+'</span></div>';
+}
+
 function toggleWhy(){
   const box=document.getElementById('calc-why-box');
   const btn=document.getElementById('why-btn');
@@ -2049,7 +2138,7 @@ function saveMoveMin(){
   const v=parseInt(document.getElementById('move-min').value)||0;
   if(!STATE.daily[TODAY])STATE.daily[TODAY]={};
   STATE.daily[TODAY].moveMin=v;
-  saveState();
+  saveState();refreshStatus();
 }
 function setDayType(t){
   if(!STATE.daily[TODAY])STATE.daily[TODAY]={};
@@ -2059,6 +2148,7 @@ function setDayType(t){
     const el=document.getElementById('dtype-'+x);
     if(el) el.className='tier-btn'+(STATE.daily[TODAY].dayType===x?' on':'');
   });
+  refreshStatus();
 }
 
 // Restore today's calc inputs + movement on load
@@ -2068,7 +2158,8 @@ function restoreCalc(){
   if(d.recovery!==undefined && d.recovery!==null){ var rc=document.getElementById('calc-recovery'); if(rc)rc.value=d.recovery; }
   if(d.moveMin){ var mm=document.getElementById('move-min'); if(mm)mm.value=d.moveMin; }
   if(d.dayType){ var el=document.getElementById('dtype-'+d.dayType); if(el)el.className='tier-btn on'; }
-  if(d.calcRun){ try{ runCalculate(); }catch(e){} }
+  if(d.orders){ try{ renderForecastStatus(); }catch(e){} }
+  else if(d.calcRun){ try{ runCalculate(); }catch(e){} }
 }
 
 

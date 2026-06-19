@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ignition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Barlow+Condensed:wght@600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a0a0d; --ink2:#13131a; --ash:#1d1d26;
+  --ember:#ff5a1f; --emberDim:#c2410c; --gold:#e0a93b;
+  --smoke:#9a9aa8; --bone:#f4efe6; --line:#2a2a36;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  background:var(--ink); color:var(--bone);
+  font-family:'Barlow Condensed',sans-serif;
+  overflow:hidden; position:fixed; width:100%; height:100%;
+  display:flex; flex-direction:column;
+}
+
+/* top nav */
+#topbar{
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  padding:14px 12px calc(env(safe-area-inset-top) + 4px); flex-shrink:0;
+  position:relative; z-index:5;
+}
+.navbtn{
+  font-family:'Cinzel',serif; font-size:12px; font-weight:600; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--smoke); background:none; border:1px solid var(--line);
+  padding:8px 16px; border-radius:999px; cursor:pointer; transition:all .2s;
+}
+.navbtn.on{ color:var(--ink); background:var(--ember); border-color:var(--ember); }
+
+/* views */
+.view{ flex:1; display:none; flex-direction:column; min-height:0; }
+.view.on{ display:flex; }
+
+/* ── IGNITION ── */
+#ignition{ position:relative; align-items:center; justify-content:center; padding:0; }
+#bg{ position:absolute; inset:0; z-index:0; transition:opacity .5s; }
+#quoteWrap{
+  position:relative; z-index:2; flex:1; display:flex; align-items:center; justify-content:center;
+  width:100%; padding:24px 26px; text-align:center;
+}
+#quote{
+  font-family:'Oswald',sans-serif; font-weight:700; line-height:1.04;
+  letter-spacing:-0.01em; color:var(--bone);
+  text-shadow:0 2px 30px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,0.8);
+  text-wrap:balance; transition:opacity .25s;
+}
+#controls{
+  position:relative; z-index:3; flex-shrink:0;
+  padding:0 22px calc(env(safe-area-inset-bottom) + 26px);
+  display:flex; flex-direction:column; align-items:center; gap:14px; width:100%;
+}
+#feed{
+  width:100%; max-width:440px; padding:20px; border:none; border-radius:16px; cursor:pointer;
+  font-family:'Cinzel',serif; font-weight:700; font-size:17px; letter-spacing:0.16em;
+  text-transform:uppercase; color:#1a0a02;
+  background:linear-gradient(135deg,#ff7a33,#ff5a1f 55%,#d4400a);
+  box-shadow:0 0 32px rgba(255,90,31,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition:transform .08s, box-shadow .3s;
+}
+#feed:active{ transform:scale(0.97); box-shadow:0 0 48px rgba(255,90,31,0.7); }
+.tune-row{ display:flex; gap:12px; width:100%; max-width:440px; }
+.tune{
+  flex:1; padding:11px; border:1px solid var(--line); background:rgba(255,255,255,0.02);
+  border-radius:11px; cursor:pointer; color:var(--smoke);
+  font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px;
+  letter-spacing:0.1em; text-transform:uppercase; transition:all .15s;
+}
+.tune:active{ transform:scale(0.96); }
+.tune.more:active{ border-color:var(--ember); color:var(--ember); }
+.tune.less:active{ border-color:var(--smoke); color:var(--bone); }
+#tuneNote{ font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--emberDim); height:13px; transition:opacity .3s; opacity:0; font-weight:700; }
+
+/* ── GAS / FLAME ── */
+.linkview{ padding:8px 18px 0; overflow-y:auto; }
+.lv-head{ text-align:center; margin-bottom:18px; }
+.lv-title{ font-family:'Cinzel',serif; font-size:26px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
+#gas .lv-title{ color:var(--ember); }
+#flame .lv-title{ color:var(--gold); }
+.lv-sub{ font-size:13px; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); margin-top:4px; }
+.addbar{ display:flex; flex-direction:column; gap:9px; margin-bottom:20px; background:var(--ink2); padding:14px; border-radius:14px; border:1px solid var(--line); }
+.addbar input{
+  width:100%; background:var(--ash); border:1px solid var(--line); color:var(--bone);
+  padding:12px 13px; border-radius:9px; font-family:'Barlow Condensed',sans-serif;
+  font-size:16px; outline:none;
+}
+.addbar input:focus{ border-color:var(--ember); }
+.addbtn{
+  padding:13px; border:none; border-radius:9px; cursor:pointer; color:#1a0a02;
+  font-family:'Cinzel',serif; font-weight:700; font-size:14px; letter-spacing:0.12em; text-transform:uppercase;
+}
+#gas .addbtn{ background:var(--ember); }
+#flame .addbtn{ background:var(--gold); }
+.linklist{ display:flex; flex-direction:column; gap:10px; padding-bottom:40px; }
+.linkcard{
+  display:flex; align-items:center; gap:12px; background:var(--ink2);
+  border:1px solid var(--line); border-radius:12px; padding:14px 15px; text-decoration:none;
+  transition:border-color .2s;
+}
+.linkcard:active{ border-color:var(--ember); }
+.lc-body{ flex:1; min-width:0; }
+.lc-title{ font-weight:700; font-size:16px; color:var(--bone); letter-spacing:0.01em; }
+.lc-url{ font-size:12px; color:var(--smoke); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; letter-spacing:0.02em; }
+.lc-del{ flex-shrink:0; width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:none; color:var(--smoke); font-size:16px; cursor:pointer; }
+.lc-empty{ text-align:center; color:var(--smoke); font-size:14px; padding:40px 20px; letter-spacing:0.04em; }
+.lc-arrow{ flex-shrink:0; color:var(--emberDim); font-size:18px; }
+#flame .lc-arrow{ color:var(--gold); }
+.syncnote{ text-align:center; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#55555f; padding:6px 0 14px; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <button class="navbtn on" id="nav-ignition" onclick="show('ignition')">Ignition</button>
+  <button class="navbtn" id="nav-gas" onclick="show('gas')">Gas</button>
+  <button class="navbtn" id="nav-flame" onclick="show('flame')">Flame</button>
+</div>
+
+<!-- IGNITION -->
+<div class="view on" id="ignition">
+  <div id="bg"></div>
+  <div id="quoteWrap"><div id="quote">&nbsp;</div></div>
+  <div id="controls">
+    <div id="tuneNote"></div>
+    <button id="feed" onclick="feedFire()">&#128293;&nbsp; Feed the Fire</button>
+    <div class="tune-row">
+      <button class="tune more" onclick="tune(1)">&#9650; More</button>
+      <button class="tune less" onclick="tune(-1)">&#9660; Less</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAS -->
+<div class="view linkview" id="gas">
+  <div class="lv-head"><div class="lv-title">Gas</div><div class="lv-sub">Watch &middot; Listen</div></div>
+  <div class="addbar">
+    <input id="gas-title" placeholder="Title (e.g. Goggins clip)" />
+    <input id="gas-url" placeholder="Paste link" inputmode="url" />
+    <button class="addbtn" onclick="addLink('gas')">Add to Gas</button>
+  </div>
+  <div class="linklist" id="gas-list"></div>
+  <div class="syncnote">Synced across your devices</div>
+</div>
+
+<!-- FLAME -->
+<div class="view linkview" id="flame">
+  <div class="lv-head"><div class="lv-title">Flame</div><div class="lv-sub">Read &middot; Words</div></div>
+  <div class="addbar">
+    <input id="flame-title" placeholder="Title (e.g. Spurgeon line)" />
+    <input id="flame-url" placeholder="Paste link" inputmode="url" />
+    <button class="addbtn" onclick="addLink('flame')">Add to Flame</button>
+  </div>
+  <div class="linklist" id="flame-list"></div>
+  <div class="syncnote">Synced across your devices</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
+// ── Firebase (reuse the forged-and-functional project, separate path) ──
+var FB_OK=false, db=null, IGN_REF=null;
+try{
+  var firebaseConfig={
+    apiKey:"AIzaSyCfG7KB4NW3RC2slvapi2AOSXzx6dXUUKc",
+    authDomain:"forged-and-functional.firebaseapp.com",
+    databaseURL:"https://forged-and-functional-default-rtdb.firebaseio.com",
+    projectId:"forged-and-functional",
+    storageBucket:"forged-and-functional.firebasestorage.app",
+    messagingSenderId:"765047385106",
+    appId:"1:765047385106:web:0e1f57831022af878d3ccb"
+  };
+  firebase.initializeApp(firebaseConfig);
+  db=firebase.database();
+  IGN_REF=db.ref('ignition/david-main');
+  FB_OK=true;
+}catch(e){ console.warn('Firebase init failed, local only:', e.message); }
+
+// ── Quote library ──
+var QUOTES = [
+  // ── SELF (me vs me — king & fool) ──
+  {t:"Two men live in you. Feed the one you respect.", r:"self"},
+  {t:"The king trains while the fool negotiates.", r:"self"},
+  {t:"You already know which man you want to be. Go be him.", r:"self"},
+  {t:"Stop feeding the man who quits.", r:"self"},
+  {t:"This rep decides which man you're becoming. Throw it.", r:"self"},
+  {t:"The fool waits to feel ready. The king is already moving.", r:"self"},
+  {t:"You are the marble and the sculptor. Strike.", r:"self"},
+  {t:"Lead your body. Stop asking it for a vote.", r:"self"},
+  {t:"You don't rise to your feelings. You fall to your training.", r:"self"},
+  {t:"The man you become is hidden in what you repeat.", r:"self"},
+  {t:"Be the man your name is supposed to mean.", r:"self"},
+  {t:"You've done hard things before. This is just the next one.", r:"self"},
+  {t:"Discipline is the strongest form of self-love. Choose it.", r:"self"},
+  {t:"The future you is counting on the promise you make right now.", r:"self"},
+  {t:"You were not built to idle. So move.", r:"self"},
+  {t:"The decisive hour belongs to the man who already decided who he is.", r:"self"},
+  {t:"Hold the standard. You already set it.", r:"self"},
+  {t:"Win the war with yourself first. The rest is easy.", r:"self"},
+
+  // ── FAMILY (cost + standard — heaviest) ──
+  {t:"Somebody you love needs a body you haven't earned yet.", r:"family"},
+  {t:"You are staying able for them. Now move.", r:"family"},
+  {t:"Don't be the reason you can't show up for your family.", r:"family"},
+  {t:"The man your kids need at 70 is built today.", r:"family"},
+  {t:"Your kids will face their own hard thing. Show them how a man meets it.", r:"family"},
+  {t:"Be the father they remember as steady, strong, and present.", r:"family"},
+  {t:"Strong, steady, and present. That's the inheritance. Build it.", r:"family"},
+  {t:"Your children are taking notes. Set the standard.", r:"family"},
+  {t:"Show them what they're capable of by what you refuse to skip.", r:"family"},
+  {t:"Earn the strength to carry the people you love.", r:"family"},
+  {t:"One day they'll need you able. Be able.", r:"family"},
+  {t:"Be the old man your grandkids can't keep up with.", r:"family"},
+  {t:"The goal isn't the mirror. It's being there when they need you.", r:"family"},
+  {t:"Carve your name on their hearts. Start with showing up today.", r:"family"},
+  {t:"Your discipline is a gift to people who aren't even born yet.", r:"family"},
+
+  // ── READY (finest hour — formed before summoned) ──
+  {t:"When the moment comes, it's too late to prepare.", r:"ready"},
+  {t:"A man must be formed before he is summoned.", r:"ready"},
+  {t:"The call comes before you feel ready. Be ready anyway.", r:"ready"},
+  {t:"Don't let your finest hour find you unprepared.", r:"ready"},
+  {t:"Train for the day you cannot predict.", r:"ready"},
+  {t:"The crisis spends the currency discipline saved.", r:"ready"},
+  {t:"The storm asks how deep your roots go. Grow them now.", r:"ready"},
+  {t:"You cannot grow roots after the wind begins.", r:"ready"},
+  {t:"Private roots. Public endurance.", r:"ready"},
+  {t:"This training is making you capable of your finest hour.", r:"ready"},
+  {t:"The burden does not wait until your back feels strong.", r:"ready"},
+  {t:"When the test comes, you get what you practiced.", r:"ready"},
+  {t:"Build the man now who can carry the heavier season later.", r:"ready"},
+  {t:"Readiness is built in obscurity. Build it.", r:"ready"},
+  {t:"Heat does not lie. Forge yourself before the fire.", r:"ready"},
+
+  // ── CLIMB (worth of the work) ──
+  {t:"The harder the conflict, the more glorious the triumph.", r:"climb"},
+  {t:"What you obtain too cheap, you esteem too lightly.", r:"climb"},
+  {t:"You're not in love with the victory. Fall in love with the fight.", r:"climb"},
+  {t:"Your struggles determine your successes.", r:"climb"},
+  {t:"The work no one sees shows you who you really are.", r:"climb"},
+  {t:"Obstacles are the cost of greatness. Pay it.", r:"climb"},
+  {t:"Mastery can't be bought, rushed, or inherited. Only earned.", r:"climb"},
+  {t:"Success comes at the expense of your former comfort.", r:"climb"},
+  {t:"The price of anything is the life you exchange for it. Spend well.", r:"climb"},
+  {t:"Pour into the work on the days you don't feel it. That's the whole secret.", r:"climb"},
+  {t:"Consistency before intensity. Show up every day.", r:"climb"},
+  {t:"Average effort, repeated long enough, becomes exceptional.", r:"climb"},
+  {t:"The climb is the reward. Take the next step.", r:"climb"},
+  {t:"I have one candle to burn. Burn it in the dark place.", r:"climb"},
+  {t:"To be stronger, you need difficulty. Welcome it.", r:"climb"},
+
+  // ── LIFT (encouragement / identity — the steadying hand) ──
+  {t:"You have what it takes. Now spend it.", r:"lift"},
+  {t:"You're worthy. This work is to be able.", r:"lift"},
+  {t:"The goal isn't earning love. It's being able to give it.", r:"lift"},
+  {t:"Give it all you have. It's about capability, not approval.", r:"lift"},
+  {t:"You don't have to be perfect today. You have to be faithful. You can.", r:"lift"},
+  {t:"Never seek validation from a world that crucified a perfect man.", r:"lift"},
+  {t:"You were made for more than comfort. You already know it.", r:"lift"},
+  {t:"The man who shows up tired and does it anyway. That's you today.", r:"lift"},
+  {t:"You used everything you were given. Make that the goal.", r:"lift"},
+  {t:"Orient toward the greatest good you can imagine. Then chase it.", r:"lift"},
+  {t:"You can do anything you decide to do. Decide.", r:"lift"},
+  {t:"The fears are paper tigers. Walk through them.", r:"lift"},
+  {t:"You were meant and made to do something larger. Go do it.", r:"lift"},
+
+  // ── DEFY (underdog / fire — the flavor) ──
+  {t:"Do what others won't, so you can do what others can't.", r:"defy"},
+  {t:"They counted you out. Make them count again.", r:"defy"},
+  {t:"Underestimated is a gift. Cash it in.", r:"defy"},
+  {t:"While they rest on talent, bury them with work.", r:"defy"},
+  {t:"They have ability. You have refusal. Refusal wins.", r:"defy"},
+  {t:"The world loves a quitter. Disappoint it.", r:"defy"},
+  {t:"The chip on your shoulder is load-bearing. Keep it.", r:"defy"},
+  {t:"Be the man they didn't see coming.", r:"defy"},
+  {t:"They train when they feel like it. That's why you'll pass them.", r:"defy"},
+  {t:"Make them wonder where it came from.", r:"defy"},
+  {t:"Age brought a bigger army. Fight smarter, harder, longer.", r:"defy"},
+  {t:"You can't fight time on its terms. So change the terms.", r:"defy"},
+  {t:"Make age the wrong weapon.", r:"defy"},
+  {t:"Against an enemy you can't outrun, endurance is the strategy.", r:"defy"},
+  {t:"The young win with power. You win because you refused to quit.", r:"defy"},
+  {t:"Outlast. Outwork. Out-want.", r:"defy"},
+  {t:"Who's gonna carry the boats? You are.", r:"defy"},
+  {t:"Nobody's coming to start the engine. Put fire under your own feet.", r:"defy"},
+  {t:"Wake the lion. Let the day deal with what comes out.", r:"defy"},
+
+  // ── PURE IGNITION (short, big, no-nonsense — fills the screen) ──
+  {t:"Light the fire and move.", r:"defy"},
+  {t:"Fire first. Feelings later.", r:"self"},
+  {t:"Start the engine before your feelings vote.", r:"self"},
+  {t:"The day is waiting on you.", r:"self"},
+  {t:"The first rep is the match.", r:"climb"},
+  {t:"Attack the day before it attacks you.", r:"defy"},
+  {t:"Less talk. More throttle.", r:"defy"},
+  {t:"Comfort is not the commander.", r:"self"},
+  {t:"Throttle forward.", r:"defy"},
+  {t:"Strike the match.", r:"climb"},
+  {t:"Turn the key.", r:"self"},
+  {t:"The hardest part is the ignition. Begin.", r:"self"},
+  {t:"Burn the hesitation.", r:"defy"},
+  {t:"Move first. Motivation can catch up.", r:"self"},
+  {t:"Tired is the entry fee. Pay it.", r:"defy"},
+  {t:"Get up. Lock in. Move.", r:"defy"},
+  {t:"This is the day. This is the work. Begin.", r:"climb"},
+  {t:"Small fires become furnaces. Strike the match.", r:"climb"},
+  {t:"The mountain is not moved by your mood.", r:"self"},
+  {t:"Empty the tank with purpose.", r:"climb"}
+];
+
+// ── State (weights + links) ──
+var STATE={ weights:{}, gas:[], flame:[] };
+var lastIdx=-1;
+
+function saveState(){
+  if(FB_OK && IGN_REF){ try{ IGN_REF.set(STATE); }catch(e){} }
+  try{ localStorage.setItem('ignition', JSON.stringify(STATE)); }catch(e){}
+}
+function loadState(cb){
+  // try local first for instant paint
+  try{ var l=localStorage.getItem('ignition'); if(l) STATE=Object.assign(STATE,JSON.parse(l)); }catch(e){}
+  if(FB_OK && IGN_REF){
+    IGN_REF.once('value').then(function(snap){
+      var v=snap.val();
+      if(v){ STATE=Object.assign({weights:{},gas:[],flame:[]}, v); }
+      cb();
+    }).catch(function(){ cb(); });
+  } else { cb(); }
+}
+
+// ── Weighted random quote pick ──
+function weightOf(i){ var w=STATE.weights[i]; return (w===undefined)?1:w; }
+function pickQuote(){
+  var total=0, i;
+  for(i=0;i<QUOTES.length;i++){ total += weightOf(i); }
+  if(total<=0){ return Math.floor(Math.random()*QUOTES.length); }
+  var roll=Math.random()*total, acc=0, choice=0;
+  for(i=0;i<QUOTES.length;i++){
+    acc += weightOf(i);
+    if(roll<=acc){ choice=i; break; }
+  }
+  // avoid immediate repeat if possible
+  if(choice===lastIdx && QUOTES.length>1){ return pickQuote(); }
+  return choice;
+}
+
+// ── Auto-fit: size font to fill the quote box ──
+function fitText(){
+  var wrap=document.getElementById('quoteWrap');
+  var el=document.getElementById('quote');
+  var maxW=wrap.clientWidth-2, maxH=wrap.clientHeight-2;
+  var size=120; // start big
+  el.style.fontSize=size+'px';
+  while(size>22 && (el.scrollWidth>maxW || el.scrollHeight>maxH)){
+    size-=2; el.style.fontSize=size+'px';
+  }
+}
+
+function showQuote(i){
+  lastIdx=i;
+  var el=document.getElementById('quote');
+  el.style.opacity=0;
+  setTimeout(function(){
+    el.textContent=QUOTES[i].t;
+    fitText();
+    el.style.opacity=1;
+    cycleBg();
+  },120);
+}
+function feedFire(){ showQuote(pickQuote()); }
+
+function tune(dir){
+  if(lastIdx<0) return;
+  var cur=weightOf(lastIdx);
+  var next = dir>0 ? Math.min(cur*2, 16) : Math.max(cur/2, 0.0625);
+  STATE.weights[lastIdx]=next;
+  saveState();
+  var note=document.getElementById('tuneNote');
+  note.textContent = dir>0 ? 'More of this' : 'Less of this';
+  note.style.opacity=1;
+  setTimeout(function(){ note.style.opacity=0; },900);
+  setTimeout(function(){ feedFire(); },260);
+}
+
+// ── Ambient background (CSS gradients, no image files needed) ──
+var BGS=[
+  'radial-gradient(circle at 50% 120%, #3a1505 0%, #1a0a04 45%, #0a0a0d 100%)',
+  'radial-gradient(circle at 30% 20%, #2a1208 0%, #120a10 50%, #0a0a0d 100%)',
+  'linear-gradient(160deg, #1a0d06 0%, #0d0d14 60%, #0a0a0d 100%)',
+  'radial-gradient(circle at 70% 80%, #34160a 0%, #150d0a 50%, #0a0a0d 100%)',
+  'linear-gradient(200deg, #20100a 0%, #0d0b12 55%, #08080b 100%)',
+  'radial-gradient(circle at 50% 0%, #2e1408 0%, #130b0d 55%, #0a0a0d 100%)'
+];
+function cycleBg(){
+  var bg=document.getElementById('bg');
+  bg.style.background=BGS[Math.floor(Math.random()*BGS.length)];
+}
+
+// ── Nav ──
+function show(id){
+  ['ignition','gas','flame'].forEach(function(v){
+    document.getElementById(v).className='view'+(v===id?' on':'')+((v!=='ignition')?' linkview':'');
+    document.getElementById('nav-'+v).className='navbtn'+(v===id?' on':'');
+  });
+  if(id==='ignition') fitText();
+}
+
+// ── Gas / Flame links ──
+function addLink(kind){
+  var t=document.getElementById(kind+'-title').value.trim();
+  var u=document.getElementById(kind+'-url').value.trim();
+  if(!u){ return; }
+  if(!/^https?:\/\//i.test(u)) u='https://'+u;
+  if(!t) t=u.replace(/^https?:\/\//,'').split('/')[0];
+  STATE[kind].unshift({t:t,u:u});
+  saveState();
+  document.getElementById(kind+'-title').value='';
+  document.getElementById(kind+'-url').value='';
+  renderLinks(kind);
+}
+function delLink(kind,idx){
+  STATE[kind].splice(idx,1); saveState(); renderLinks(kind);
+}
+function renderLinks(kind){
+  var list=document.getElementById(kind+'-list');
+  var arr=STATE[kind]||[];
+  if(!arr.length){
+    list.innerHTML='<div class="lc-empty">Nothing here yet. Drop a link above.</div>';
+    return;
+  }
+  list.innerHTML=arr.map(function(it,i){
+    return '<a class="linkcard" href="'+it.u+'" target="_blank" rel="noopener">'+
+      '<div class="lc-body"><div class="lc-title">'+escapeHtml(it.t)+'</div>'+
+      '<div class="lc-url">'+escapeHtml(it.u)+'</div></div>'+
+      '<span class="lc-arrow">&#8599;</span>'+
+      '<button class="lc-del" onclick="event.preventDefault();event.stopPropagation();delLink(\''+kind+'\','+i+')">&times;</button>'+
+      '</a>';
+  }).join('');
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+// ── Init ──
+window.addEventListener('resize', function(){ if(document.getElementById('ignition').classList.contains('on')) fitText(); });
+loadState(function(){
+  renderLinks('gas'); renderLinks('flame');
+  cycleBg();
+  feedFire();
+});
+</script>
+</body>
+</html>
